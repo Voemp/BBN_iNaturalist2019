@@ -4,6 +4,13 @@ import random
 
 class iNaturalist(BaseSet):
     def __init__(self, mode='train', cfg=None, transform=None):
+        """
+        初始化 iNaturalist 数据集类
+
+        :param mode: 数据模式，'train' 表示训练模式，其他可以是 'test' 或 'valid'
+        :param cfg: 配置对象，包含模型和数据集的相关配置
+        :param transform: 数据变换函数，用于数据增强
+        """
         super().__init__(mode, cfg, transform)
         random.seed(0)
         if self.dual_sample or (self.cfg.TRAIN.SAMPLER.TYPE == "weighted sampler" and mode=="train"):
@@ -11,6 +18,15 @@ class iNaturalist(BaseSet):
             self.class_dict = self._get_class_dict()
 
     def __getitem__(self, index):
+        """
+        获取指定索引的数据样本
+
+        :param index: 数据索引
+        :return: 一个元组 (image, image_label, meta)
+            - image: 样本图像
+            - image_label: 样本的类别标签
+            - meta: 包含额外信息的字典
+        """
         if self.cfg.TRAIN.SAMPLER.TYPE == "weighted sampler" and self.mode == 'train':
             assert self.cfg.TRAIN.SAMPLER.WEIGHTED_SAMPLER.TYPE in ["balance", "reverse"]
             if  self.cfg.TRAIN.SAMPLER.WEIGHTED_SAMPLER.TYPE == "balance":
