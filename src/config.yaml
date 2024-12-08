@@ -1,5 +1,7 @@
+save_step: 5
+valid_step: 1
 train:
-  batch_size: 32
+  batch_size: 128
   learning_rate: 0.001
   num_epochs: 50
   step_size: 20
@@ -11,3 +13,6 @@ data:
   val_file: "../data/jsons/converted_val2019.json"
   test_file: "data/jsons/converted_test2019.json"
   num_classes: 1010
+output:
+  output_dir: "output"
+  name: "inaturalist2019"
