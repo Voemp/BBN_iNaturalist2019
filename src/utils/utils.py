@@ -6,29 +6,29 @@ import torch
 from ..net import Network
 
 
-def create_logger(cfg):
-    dataset = cfg.DATASET.DATASET
-    net_type = cfg.BACKBONE.TYPE
-    module_type = cfg.MODULE.TYPE
-    log_dir = os.path.join(cfg.OUTPUT_DIR, cfg.NAME, "logs")
-    if not os.path.exists(log_dir):
-        os.makedirs(log_dir)
-    time_str = time.strftime("%Y-%m-%d-%H-%M")
-    log_name = "{}_{}_{}_{}.log".format(dataset, net_type, module_type, time_str)
-    log_file = os.path.join(log_dir, log_name)
-    # set up logger
-    print("=> creating log {}".format(log_file))
-    head = "%(asctime)-15s %(message)s"
-    logging.basicConfig(filename=str(log_file), format=head)
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-    console = logging.StreamHandler()
-    logging.getLogger("").addHandler(console)
-
-    logger.info("---------------------Cfg is set as follow--------------------")
-    logger.info(cfg)
-    logger.info("-------------------------------------------------------------")
-    return logger, log_file
+# def create_logger(cfg):
+#     dataset = cfg.DATASET.DATASET
+#     net_type = cfg.BACKBONE.TYPE
+#     module_type = cfg.MODULE.TYPE
+#     log_dir = os.path.join(cfg.OUTPUT_DIR, cfg.NAME, "logs")
+#     if not os.path.exists(log_dir):
+#         os.makedirs(log_dir)
+#     time_str = time.strftime("%Y-%m-%d-%H-%M")
+#     log_name = "{}_{}_{}_{}.log".format(dataset, net_type, module_type, time_str)
+#     log_file = os.path.join(log_dir, log_name)
+#     # set up logger
+#     print("=> creating log {}".format(log_file))
+#     head = "%(asctime)-15s %(message)s"
+#     logging.basicConfig(filename=str(log_file), format=head)
+#     logger = logging.getLogger()
+#     logger.setLevel(logging.INFO)
+#     console = logging.StreamHandler()
+#     logging.getLogger("").addHandler(console)
+#
+#     logger.info("---------------------Cfg is set as follow--------------------")
+#     logger.info(cfg)
+#     logger.info("-------------------------------------------------------------")
+#     return logger, log_file
 
 
 # def get_optimizer(cfg, model):

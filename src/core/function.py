@@ -1,4 +1,3 @@
-import _init_paths
 from evaluate import accuracy, AverageMeter, FusionMatrix
 
 import numpy as np
@@ -47,12 +46,10 @@ def train_model(
             pbar_str = "Epoch:{:>3d}  Batch:{:>3d}/{}  Batch_Loss:{:>5.3f}  Batch_Accuracy:{:>5.2f}%     ".format(
                 epoch, i, number_batch, all_loss.val, acc.val * 100
             )
-            logger.info(pbar_str)
     end_time = time.time()
     pbar_str = "---Epoch:{:>3d}/{}   Avg_Loss:{:>5.3f}   Epoch_Accuracy:{:>5.2f}%   Epoch_Time:{:>5.2f}min---".format(
         epoch, epoch_number, all_loss.avg, acc.avg * 100, (end_time - start_time) / 60
     )
-    logger.info(pbar_str)
     return acc.avg, all_loss.avg
 
 
@@ -86,5 +83,4 @@ def valid_model(
         pbar_str = "------- Valid: Epoch:{:>3d}  Valid_Loss:{:>5.3f}   Valid_Acc:{:>5.2f}%-------".format(
             epoch_number, all_loss.avg, acc.avg * 100
         )
-        logger.info(pbar_str)
     return acc.avg, all_loss.avg

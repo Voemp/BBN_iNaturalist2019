@@ -1,69 +1,69 @@
-NAME: 'BBN.iNaturalist2019.res50.180epoch'  # 模型名称，便于识别
-OUTPUT_DIR: 'output\iNat19'  # 输出目录，存放训练结果
-SHOW_STEP: 25  # 每25步显示一次训练进度
-SAVE_STEP: 5  # 每5个epoch保存一次模型
-VALID_STEP: 1  # 每1个epoch进行一次验证
-INPUT_SIZE: (100, 100)  # 输入图像的尺寸 (宽度, 高度)
-COLOR_SPACE: 'RGB'  # 图像的颜色空间，RGB表示彩色图像
-CPU_MODE: False  # 是否在CPU模式下运行，False表示使用GPU
+NAME: 'BBN.iNaturalist2019.res50.180epoch'  # ģ�����ƣ�����ʶ��
+OUTPUT_DIR: 'output\iNat19'  # ���Ŀ¼�����ѵ�����
+SHOW_STEP: 25  # ÿ25����ʾһ��ѵ������
+SAVE_STEP: 5  # ÿ5��epoch����һ��ģ��
+VALID_STEP: 1  # ÿ1��epoch����һ����֤
+INPUT_SIZE: (100, 100)  # ����ͼ��ĳߴ� (����, �߶�)
+COLOR_SPACE: 'RGB'  # ͼ�����ɫ�ռ䣬RGB��ʾ��ɫͼ��
+CPU_MODE: False  # �Ƿ���CPUģʽ�����У�False��ʾʹ��GPU
 
-# 数据集设置
+# ���ݼ�����
 DATASET:
-  DATASET: 'iNaturalist'  # 使用的训练数据集名称
-  DATA_TYPE: 'jpg'  # 数据类型，图片格式为JPEG
-  TRAIN_JSON: './jsons/converted_train2019.json'  # 训练集的标注文件路径
-  VALID_JSON: './jsons/converted_val2019.json'  # 验证集的标注文件路径
+  DATASET: 'iNaturalist'  # ʹ�õ�ѵ�����ݼ�����
+  DATA_TYPE: 'jpg'  # �������ͣ�ͼƬ��ʽΪJPEG
+  TRAIN_JSON: './jsons/converted_train2019.json'  # ѵ�����ı�ע�ļ�·��
+  VALID_JSON: './jsons/converted_val2019.json'  # ��֤���ı�ע�ļ�·��
 
-# 模型骨干网络设置
+# ģ�͹Ǹ���������
 BACKBONE:
-  TYPE: 'bbn_res50'  # 骨干网络的类型，这里使用的是BBN (Backbone Network) 版本的ResNet-50
+  TYPE: 'bbn_res50'  # �Ǹ���������ͣ�����ʹ�õ���BBN (Backbone Network) �汾��ResNet-50
 
-## 模块设置
+## ģ������
 #MODULE:
-#  TYPE: 'GAP'  # 使用全局平均池化（Global Average Pooling）模块
+#  TYPE: 'GAP'  # ʹ��ȫ��ƽ���ػ���Global Average Pooling��ģ��
 
-# 损失函数设置
+# ��ʧ��������
 LOSS:
-  LOSS_TYPE: 'CrossEntropy'  # 损失函数类型，交叉熵损失用于分类任务
+  LOSS_TYPE: 'CrossEntropy'  # ��ʧ�������ͣ���������ʧ���ڷ�������
 
-# 分类器设置
+# ����������
 CLASSIFIER:
-#  TYPE: 'FC'  # 分类器类型，使用全连接层（Fully Connected Layer）
-  BIAS: True  # 是否使用偏置项（bias）
+#  TYPE: 'FC'  # ���������ͣ�ʹ��ȫ���Ӳ㣨Fully Connected Layer��
+  BIAS: True  # �Ƿ�ʹ��ƫ���bias��
 
-# 训练参数设置
+# ѵ����������
 TRAIN:
-  BATCH_SIZE: 128  # 批量大小，每次训练输入128张图片
-  MAX_EPOCH: 10  # 最大训练周期（epoch），这里设为10
-  NUM_WORKERS: 16  # 加载数据的工作线程数
+  BATCH_SIZE: 128  # ������С��ÿ��ѵ������128��ͼƬ
+  MAX_EPOCH: 10  # ���ѵ�����ڣ�epoch����������Ϊ10
+  NUM_WORKERS: 16  # �������ݵĹ����߳���
   COMBINER:
-    TYPE: 'bbn_mix'  # 混合策略类型，使用BBN混合策略 core.combiner.py中定义
+    TYPE: 'bbn_mix'  # ��ϲ������ͣ�ʹ��BBN��ϲ��� core.combiner.py�ж���
   TENSORBOARD:
-    ENABLE: False  # 是否启用TensorBoard进行可视化训练进度
+    ENABLE: False  # �Ƿ�����TensorBoard���п��ӻ�ѵ������
   SAMPLER:
-    TYPE: 'default'  # 采样策略类型，使用默认策略 core.combiner.py中定义
+    TYPE: 'default'  # �����������ͣ�ʹ��Ĭ�ϲ��� core.combiner.py�ж���
     DUAL_SAMPLER:
-      ENABLE: True  # 是否启用双重采样
-      TYPE: 'reverse'  # 双重采样的类型，采用反向采样策略
+      ENABLE: True  # �Ƿ�����˫�ز���
+      TYPE: 'reverse'  # ˫�ز��������ͣ����÷����������
 
-#————————————————————————已经被我固化到了train.py里面——————————————————
+#�������������������������������������������������Ѿ����ҹ̻�����train.py���桪����������������������������������
 #  OPTIMIZER:
-#    TYPE: 'SGD'  # 优化器类型，使用随机梯度下降（SGD）
-#    BASE_LR: 0.05  # 基础学习率
-#    MOMENTUM: 0.9  # 动量因子，用于SGD优化器
-#    WEIGHT_DECAY: 1e-4  # 权重衰减，用于正则化，防止过拟合
+#    TYPE: 'SGD'  # �Ż������ͣ�ʹ������ݶ��½���SGD��
+#    BASE_LR: 0.05  # ����ѧϰ��
+#    MOMENTUM: 0.9  # �������ӣ�����SGD�Ż���
+#    WEIGHT_DECAY: 1e-4  # Ȩ��˥�����������򻯣���ֹ�����
 #  LR_SCHEDULER:
-#    TYPE: 'multistep'  # 学习率调度器类型，使用多步衰减策略
-#    LR_STEP: [ 3, 6, 9 ]  # 学习率衰减的epoch步数，在这几个epoch时学习率将降低
-#    LR_FACTOR: 0.1  # 学习率的衰减因子，每次衰减时学习率乘以此因子
+#    TYPE: 'multistep'  # ѧϰ�ʵ��������ͣ�ʹ�öಽ˥������
+#    LR_STEP: [ 3, 6, 9 ]  # ѧϰ��˥����epoch���������⼸��epochʱѧϰ�ʽ�����
+#    LR_FACTOR: 0.1  # ѧϰ�ʵ�˥�����ӣ�ÿ��˥��ʱѧϰ�ʳ��Դ�����
 
-# 数据增强和预处理设置
+# ������ǿ��Ԥ��������
 TRANSFORMS:
-  TRAIN_TRANSFORMS: ("random_resized_crop", "random_horizontal_flip")  # 训练数据的预处理操作，随机裁剪和随机水平翻转
-  TEST_TRANSFORMS: ("shorter_resize_for_crop", "center_crop")  # 测试数据的预处理操作，短边缩放和中心裁剪
+  TRAIN_TRANSFORMS: ("random_resized_crop", "random_horizontal_flip")  # ѵ�����ݵ�Ԥ��������������ü������ˮƽ��ת
+  TEST_TRANSFORMS: ("shorter_resize_for_crop", "center_crop")  # �������ݵ�Ԥ�����������̱����ź����Ĳü�
 
-# 测试参数设置
+# ���Բ�������
 TEST:
-  BATCH_SIZE: 128  # 测试时的批量大小
-  NUM_WORKERS: 16  # 加载测试数据的工作线程数
-  MODEL_FILE: '/home/BBN/models/BBN.iNaturalist2018.res50.180epoch.best_model.pth'  # 加载的预训练模型文件路径
+  BATCH_SIZE: 128  # ����ʱ��������С
+  NUM_WORKERS: 16  # ���ز������ݵĹ����߳���
+  MODEL_FILE: '/home/BBN/models/BBN.iNaturalist2018.res50.180epoch.best_model.pth'  # ���ص�Ԥѵ��ģ���ļ�·��

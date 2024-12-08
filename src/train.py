@@ -12,7 +12,6 @@ import click
 from core.function import train_model, valid_model
 from utils import convert
 from utils.utils import (
-    create_logger,
     get_model,
     get_category_list,
 )
@@ -52,7 +51,7 @@ if __name__ == "__main__":
     epoch_number = cfg.TRAIN.MAX_EPOCH
 
     # 获取模型
-    model = get_model(cfg, num_classes, device)
+    model = get_model(cfg, num_classes, device)   # 不冻结模型，使用gpu
 
     # 创建 Combiner 实例
     combiner = Combiner(cfg, device)
