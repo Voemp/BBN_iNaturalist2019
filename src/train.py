@@ -4,7 +4,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from torchvision import transforms
 
 from dataset import INatDataset
 from model import Network
@@ -21,32 +20,8 @@ def train():
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
 
-    # 硬编码的参数
-    input_size = (100, 100)
-    train_transforms = ["random_resized_crop", "random_horizontal_flip"]
-
-    # 构建 transform
-    transform = transforms.Compose([])
-
-    if "random_resized_crop" in train_transforms:
-        transform.transforms.append(
-            transforms.RandomResizedCrop(
-                size=input_size,  # 使用硬编码的输入尺寸
-                scale=(0.08, 1.0),  # 固定 scale 范围
-                ratio=(3. / 4., 4. / 3.)  # 固定 ratio 范围
-            )
-        )
-
-    if "random_horizontal_flip" in train_transforms:
-        transform.transforms.append(
-            transforms.RandomHorizontalFlip(p=0.5)
-        )
-
-    # 添加 ToTensor() 转换
-    transform.transforms.append(transforms.ToTensor())
-
-    train_dataset = INatDataset(config['data']['train_file'], transform=transform)
-    val_dataset = INatDataset(config['data']['val_file'], transform=transform)
+    train_dataset = INatDataset(mode="train", json_file=config['data']['train_file'])
+    val_dataset = INatDataset(mode="valid", json_file=config['data']['val_file'])
 
     train_loader = DataLoader(train_dataset, batch_size=config['train']['batch_size'], shuffle=True,
                               num_workers=config['train']['num_workers'], pin_memory=True)

@@ -49,9 +49,7 @@ def train_model(
     return acc.avg, all_loss.avg
 
 
-def valid_model(
-        data_loader, epoch_number, model, criterion, device
-):
+def valid_model(data_loader, epoch_number, model, criterion, device):
     model.eval()
     num_classes = data_loader.dataset.get_num_classes()
     fusion_matrix = FusionMatrix(num_classes)

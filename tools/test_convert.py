@@ -1,6 +1,7 @@
+import csv
 import json
 import os
-import csv
+
 from tqdm import tqdm
 
 
@@ -55,7 +56,7 @@ def main():
     json_file = "F:\\iNaturalist\\inaturalist-2019-fgvc6\\test2019.json"
 
     # 图像根目录路径 (请根据实际路径修改)
-    image_root = "F:\\iNaturalist\\inaturalist-2019-fgvc6\\test2019"
+    image_root = "F:\\iNaturalist\\inaturalist-2019-fgvc6"
 
     # 输入的预测 CSV 文件路径 (假设 csv 文件位于当前路径)
     csv_file = "F:\\iNaturalist\\inaturalist-2019-fgvc6\\kaggle_sample_submission.csv"  # 请修改为实际的 CSV 文件路径

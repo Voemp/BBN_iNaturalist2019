@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -124,7 +126,27 @@ class BBN_ResNet(nn.Module):
         # 分类模块
         self.cb_block = block(self.inplanes, self.inplanes // 4, stride=1)
         self.rb_block = block(self.inplanes, self.inplanes // 4, stride=1)
-        self.fc = nn.Linear(512 * block.expansion * 2, num_classes)
+
+    def load_model(self, pretrain):
+        print(f"加载预训练模型: {pretrain}")
+        model_dict = self.state_dict()
+        pretrain_dict = torch.load(pretrain, weights_only=True)
+
+        # 过滤掉不匹配的键
+        pretrain_dict = pretrain_dict["state_dict"] if "state_dict" in pretrain_dict else pretrain_dict
+        new_dict = OrderedDict()
+        for k, v in pretrain_dict.items():
+            if k.startswith("module"):
+                k = k[7:]
+            if "fc" not in k and "classifier" not in k:
+                k = k.replace("backbone.", "")
+                new_dict[k] = v
+        pretrain_dict = {k: v for k, v in pretrain_dict.items() if k in model_dict and v.size() == model_dict[k].size()}
+
+        # 更新模型字典并加载
+        model_dict.update(pretrain_dict)
+        self.load_state_dict(model_dict)
+        print("已加载与模型匹配的预训练权重。")
 
     def _make_layer(self, block, planes, num_blocks, stride=1):
         layers = []
@@ -150,23 +172,8 @@ class BBN_ResNet(nn.Module):
             return out
         cb_features = self.cb_block(x)
         rb_features = self.rb_block(x)
-        features = torch.cat([cb_features, rb_features], dim=1)
-        logits = self.fc(features.view(features.size(0), -1))
-        return logits
-
-    def load_model(self, pretrain):
-        print(f"加载预训练模型: {pretrain}")
-        model_dict = self.state_dict()
-        pretrain_dict = torch.load(pretrain, map_location="cpu", weights_only=True)
-
-        # 过滤掉不匹配的键
-        pretrain_dict = pretrain_dict["state_dict"] if "state_dict" in pretrain_dict else pretrain_dict
-        pretrain_dict = {k: v for k, v in pretrain_dict.items() if k in model_dict and v.size() == model_dict[k].size()}
-
-        # 更新模型字典并加载
-        model_dict.update(pretrain_dict)
-        self.load_state_dict(model_dict)
-        print("已加载与模型匹配的预训练权重。")
+        out = torch.cat((cb_features, rb_features), dim=1)
+        return out
 
 
 def bbn_res50(pretrain, num_classes, pretrain_path=None):
@@ -177,11 +184,6 @@ def bbn_res50(pretrain, num_classes, pretrain_path=None):
 
     if pretrain and pretrain_path != "":
         model.load_model(pretrain_path)
-
-        # 初始化分类层权重
-        model.fc = nn.Linear(4096, num_classes)  # 4096 是特征长度
-        nn.init.kaiming_normal_(model.fc.weight)
-        nn.init.constant_(model.fc.bias, 0)
     return model
 
 
@@ -200,7 +202,7 @@ class Network(nn.Module):
         self.backbone = bbn_res50(
             pretrain=pretrain,
             num_classes=num_classes,
-            pretrain_path="F:\\iNat\\resnet50-19c8e357.pth"
+            pretrain_path="F:\\iNaturalist\\resnet50-19c8e357.pth"
         )
         self.module = nn.AdaptiveAvgPool2d(1)
         self.classifier = nn.Linear(4096, self.num_classes, bias=True)
@@ -222,3 +224,18 @@ class Network(nn.Module):
         x = self.module(x)
         x = x.view(x.shape[0], -1)
         return x
+
+    def load_model(self, model_path, device):
+        pretrain_dict = torch.load(model_path, map_location=device)
+        pretrain_dict = pretrain_dict['state_dict'] if 'state_dict' in pretrain_dict else pretrain_dict
+        model_dict = self.state_dict()
+        from collections import OrderedDict
+        new_dict = OrderedDict()
+        for k, v in pretrain_dict.items():
+            if k.startswith("module"):
+                new_dict[k[7:]] = v
+            else:
+                new_dict[k] = v
+        model_dict.update(new_dict)
+        self.load_state_dict(model_dict)
+        print("Model loaded successfully")
