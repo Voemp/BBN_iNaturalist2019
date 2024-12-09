@@ -157,7 +157,7 @@ class BBN_ResNet(nn.Module):
     def load_model(self, pretrain):
         print(f"加载预训练模型: {pretrain}")
         model_dict = self.state_dict()
-        pretrain_dict = torch.load(pretrain, map_location="cpu")
+        pretrain_dict = torch.load(pretrain, map_location="cpu", weights_only=True)
 
         # 过滤掉不匹配的键
         pretrain_dict = pretrain_dict["state_dict"] if "state_dict" in pretrain_dict else pretrain_dict
@@ -200,7 +200,7 @@ class Network(nn.Module):
         self.backbone = bbn_res50(
             pretrain=pretrain,
             num_classes=num_classes,
-            pretrain_path="F:\\iNaturalist\\resnet50-19c8e357.pth"
+            pretrain_path="F:\\iNat\\resnet50-19c8e357.pth"
         )
         self.module = nn.AdaptiveAvgPool2d(1)
         self.classifier = nn.Linear(4096, self.num_classes, bias=True)

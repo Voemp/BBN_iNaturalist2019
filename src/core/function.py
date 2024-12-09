@@ -8,7 +8,7 @@ from src.core.evaluate import AverageMeter, FusionMatrix, accuracy
 
 
 def train_model(
-        trainLoader,
+        train_loader,
         model,
         epoch,
         epoch_number,
@@ -21,11 +21,11 @@ def train_model(
     combiner.reset_epoch(epoch)
 
     start_time = time.time()
-    number_batch = len(trainLoader)
+    number_batch = len(train_loader)
 
     all_loss = AverageMeter()
     acc = AverageMeter()
-    for i, (image, label, meta) in enumerate(trainLoader):
+    for i, (image, label, meta) in enumerate(train_loader):
         cnt = label.shape[0]
         loss, now_acc = combiner.forward(model, criterion, image, label, meta)
 
@@ -50,17 +50,17 @@ def train_model(
 
 
 def valid_model(
-        dataLoader, epoch_number, model, criterion, device
+        data_loader, epoch_number, model, criterion, device
 ):
     model.eval()
-    num_classes = dataLoader.dataset.get_num_classes()
+    num_classes = data_loader.dataset.get_num_classes()
     fusion_matrix = FusionMatrix(num_classes)
 
     with torch.no_grad():
         all_loss = AverageMeter()
         acc = AverageMeter()
         func = torch.nn.Softmax(dim=1)
-        for i, (image, label, meta) in enumerate(dataLoader):
+        for i, (image, label, meta) in enumerate(data_loader):
             image, label = image.to(device), label.to(device)
 
             feature = model(image, feature_flag=True)
@@ -82,17 +82,17 @@ def valid_model(
     return acc.avg, all_loss.avg
 
 
-def test_model(dataLoader, model, device):
+def test_model(data_loader, model, device):
     result_list = []
-    pbar = tqdm(total=len(dataLoader))
+    pbar = tqdm(total=len(data_loader))
     model.eval()
-    num_classes = dataLoader.dataset.get_num_classes()
+    num_classes = data_loader.dataset.get_num_classes()
     top1_count, top2_count, top3_count, index, fusion_matrix = ([], [], [], 0, FusionMatrix(num_classes),)
 
     func = torch.nn.Softmax(dim=1)
 
     with torch.no_grad():
-        for i, (image, image_labels, meta) in enumerate(dataLoader):
+        for i, (image, image_labels, meta) in enumerate(data_loader):
             image = image.to(device)
             output = model(image)
             result = func(output)

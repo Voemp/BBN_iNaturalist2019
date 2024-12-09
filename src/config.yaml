@@ -1,7 +1,8 @@
-save_step: 5
+save_step: 1
 valid_step: 1
 train:
-  batch_size: 128
+  num_workers: 2
+  batch_size: 256
   learning_rate: 0.05
   num_epochs: 50
   step_size: 20
@@ -14,4 +15,4 @@ data:
   test_file: "../data/jsons/converted_test2019.json"
   num_classes: 1010
 output:
-  output_dir: "..data/output"
+  output_dir: "../data/models"
