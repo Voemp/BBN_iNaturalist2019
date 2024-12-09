@@ -1,64 +1,84 @@
+import os
+
 import torch
-import torch.optim as optim
 import torch.nn as nn
+import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from model import Network
+
 from dataset import INatDataset
-from src.core.combiner import Combiner
-from utils import load_config, save_model
+from model import Network
 from plot import plot_training_curves
-import os
-import shutil
-from shutil import rmtree
+from src.core.combiner import Combiner
 from src.core.function import train_model, valid_model
-from src.core.evaluate import AverageMeter, accuracy
+from utils import load_config, save_model
 
 
 def train():
     config = load_config('config.yaml')
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    num_epochs = config['train']['num_epochs']
+    model_dir = os.path.join(config['output']['output_dir'], "models")
 
-    # 数据预处理和加载
-    transform = transforms.Compose([
-        transforms.Resize((64, 64)),
-        transforms.ToTensor(),
-    ])
+
+    # 硬编码的参数
+    input_size = (100, 100)
+    train_transforms = ["random_resized_crop", "random_horizontal_flip"]
+
+    # 构建 transform
+    transform = transforms.Compose([])
+
+    if "random_resized_crop" in train_transforms:
+        transform.transforms.append(
+            transforms.RandomResizedCrop(
+                size=input_size,  # 使用硬编码的输入尺寸
+                scale=(0.08, 1.0),  # 固定 scale 范围
+                ratio=(3. / 4., 4. / 3.)  # 固定 ratio 范围
+            )
+        )
+
+    if "random_horizontal_flip" in train_transforms:
+        transform.transforms.append(
+            transforms.RandomHorizontalFlip(p=0.5)
+        )
+
+    # 添加 ToTensor() 转换
+    transform.transforms.append(transforms.ToTensor())
+
     train_dataset = INatDataset(config['data']['train_file'], transform=transform)
     val_dataset = INatDataset(config['data']['val_file'], transform=transform)
 
     train_loader = DataLoader(train_dataset, batch_size=config['train']['batch_size'], shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=config['train']['batch_size'], shuffle=False)
-    num_epochs = config['train']['num_epochs']
 
     # 模型、损失函数和优化器
-    model = Network(config['data']['num_classes']).to(device)
+    model = Network(mode="train", num_classes=config['data']['num_classes']).to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=config['train']['learning_rate'], momentum=0.9)
+    optimizer = optim.SGD(model.parameters(), lr=config['train']['learning_rate'], momentum=0.9, weight_decay=1e-4)
     scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[3, 6, 9], gamma=0.1)
 
     combiner = Combiner(config, device)
 
     # close loop
-    model_dir = os.path.join(config['output']['output_dir'], config['output']['name'], "models")
-    code_dir = os.path.join(config['output']['output_dir'], config['output']['name'], "codes")
+    # code_dir = os.path.join(config['output']['output_dir'], config['output']['name'], "codes")
 
-    if not os.path.exists(model_dir):
-        os.makedirs(model_dir)
-    else:
-        print(
-            "This directory has already existed, Please remember to modify your cfg.output.name"
-        )
-        if not input("\033[1;31;40mContinue and override the former directory? (y/n): \033[0m").lower().startswith('y'):
-            exit(0)
-        rmtree(code_dir)  # 删除旧的代码目录
+    # if not os.path.exists(model_dir):
+    #     os.makedirs(model_dir)
+    # else:
+    #     print(
+    #         "This directory has already existed, Please remember to modify your cfg.output.name"
+    #     )
+    #     if not input("\033[1;31;40mContinue and override the former directory? (y/n): \033[0m").lower().startswith('y'):
+    #         exit(0)
+    #     rmtree(code_dir)  # 删除旧的代码目录
 
-    print("=> output model will be saved in {}".format(model_dir))
-    this_dir = os.path.dirname(__file__)
-    ignore = shutil.ignore_patterns(
-        "*.pyc", "*.so", "*.out", "*pycache*", "*.pth", "*build*", "*output*", "*datasets*"
-    )
-    shutil.copytree(os.path.join(this_dir, ".."), code_dir, ignore=ignore)
+    # print("=> output model will be saved in {}".format(model_dir))
+    # this_dir = os.path.dirname(__file__)
+    # ignore = shutil.ignore_patterns(
+    #     "*.pyc", "*.so", "*.out", "*pycache*", "*.pth", "*build*", "*output*", "*datasets*"
+    # )
+
+    # shutil.copytree(os.path.join(this_dir, ".."), code_dir, ignore=ignore)
 
     # 设置起始训练参数
     start_epoch = 1
@@ -66,7 +86,6 @@ def train():
     best_epoch = 0
 
     for epoch in range(start_epoch, num_epochs + 1):
-        scheduler.step()
         train_acc, train_loss = train_model(
             train_loader,
             model,
@@ -74,9 +93,9 @@ def train():
             num_epochs,
             optimizer,
             combiner,
-            criterion,
-            config  # ???????????????
+            criterion
         )
+        scheduler.step()
         model_save_path = os.path.join(model_dir, "epoch_{}.pth".format(epoch))
         if epoch % config['save_step'] == 0:
             torch.save({

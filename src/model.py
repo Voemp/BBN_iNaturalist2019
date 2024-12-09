@@ -1,12 +1,14 @@
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
+
 
 class Downsample(nn.Module):
     """
     自定义下采样层，用于实现滤波和下采样操作。
     """
+
     def __init__(self, pad_type='reflect', filt_size=3, stride=2, channels=None, pad_off=0):
         super(Downsample, self).__init__()
         self.filt_size = filt_size
@@ -45,6 +47,7 @@ class Downsample(nn.Module):
     def forward(self, inp):
         return F.conv2d(self.pad(inp), self.filt, stride=self.stride, groups=inp.shape[1])
 
+
 def get_pad_layer(pad_type):
     """
     根据填充类型返回相应的填充层。
@@ -57,6 +60,7 @@ def get_pad_layer(pad_type):
         return nn.ZeroPad2d
     else:
         raise ValueError(f"未知的填充类型: {pad_type}")
+
 
 class BottleNeck(nn.Module):
     """
@@ -92,11 +96,13 @@ class BottleNeck(nn.Module):
         out = self.relu(out)
         return out
 
+
 class BBN_ResNet(nn.Module):
     """
     BBN网络的ResNet实现。
     """
-    def __init__(self, num_classes, block, num_blocks, last_layer_stride=2):
+
+    def __init__(self, num_classes, block, num_blocks):
         super(BBN_ResNet, self).__init__()
         self.inplanes = 64
 
@@ -113,7 +119,7 @@ class BBN_ResNet(nn.Module):
         self.layer1 = self._make_layer(block, 64, num_blocks[0])
         self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)
         self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
-        self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=last_layer_stride)
+        self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
 
         # 分类模块
         self.cb_block = block(self.inplanes, self.inplanes // 4, stride=1)
@@ -128,7 +134,7 @@ class BBN_ResNet(nn.Module):
             layers.append(block(self.inplanes, planes))
         return nn.Sequential(*layers)
 
-    def forward(self, x):
+    def forward(self, x, **kwargs):
         x = self.relu(self.bn1(self.conv1(x)))
         x = self.pool(x)
         x = self.layer1(x)
@@ -136,35 +142,68 @@ class BBN_ResNet(nn.Module):
         x = self.layer3(x)
         x = self.layer4(x)
 
+        if "feature_cb" in kwargs:
+            out = self.cb_block(x)
+            return out
+        elif "feature_rb" in kwargs:
+            out = self.rb_block(x)
+            return out
         cb_features = self.cb_block(x)
         rb_features = self.rb_block(x)
         features = torch.cat([cb_features, rb_features], dim=1)
         logits = self.fc(features.view(features.size(0), -1))
         return logits
 
-def bbn_res50(num_classes, pretrain_path=None):
+    def load_model(self, pretrain):
+        print(f"加载预训练模型: {pretrain}")
+        model_dict = self.state_dict()
+        pretrain_dict = torch.load(pretrain, map_location="cpu")
+
+        # 过滤掉不匹配的键
+        pretrain_dict = pretrain_dict["state_dict"] if "state_dict" in pretrain_dict else pretrain_dict
+        pretrain_dict = {k: v for k, v in pretrain_dict.items() if k in model_dict and v.size() == model_dict[k].size()}
+
+        # 更新模型字典并加载
+        model_dict.update(pretrain_dict)
+        self.load_state_dict(model_dict)
+        print("已加载与模型匹配的预训练权重。")
+
+
+def bbn_res50(pretrain, num_classes, pretrain_path=None):
     """
     返回BBN的ResNet50实现。
     """
     model = BBN_ResNet(num_classes, BottleNeck, [3, 4, 6, 3])
-    if pretrain_path:
-        print(f"加载预训练模型: {pretrain_path}")
-        model.load_state_dict(torch.load(pretrain_path))
+
+    if pretrain and pretrain_path != "":
+        model.load_model(pretrain_path)
+
+        # 初始化分类层权重
+        model.fc = nn.Linear(4096, num_classes)  # 4096 是特征长度
+        nn.init.kaiming_normal_(model.fc.weight)
+        nn.init.constant_(model.fc.bias, 0)
     return model
+
 
 class Network(nn.Module):
     """
     通用网络模块，支持多种骨干网络和分类器。
     """
-    def __init__(self, num_classes):
+
+    def __init__(self, mode, num_classes):
         super(Network, self).__init__()
 
+        pretrain = True if mode == "train" else False
+
+        self.num_classes = num_classes
+
         self.backbone = bbn_res50(
+            pretrain=pretrain,
             num_classes=num_classes,
             pretrain_path="F:\\iNaturalist\\resnet50-19c8e357.pth"
         )
         self.module = nn.AdaptiveAvgPool2d(1)
-        self.classifier = nn.Linear(2048 * 2, self.num_classes, bias=True)
+        self.classifier = nn.Linear(4096, self.num_classes, bias=True)
 
     def forward(self, x, **kwargs):
         if "feature_flag" in kwargs or "feature_cb" in kwargs or "feature_rb" in kwargs:
