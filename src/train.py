@@ -11,8 +11,8 @@ from plot import plot_training_curves
 import os
 import shutil
 from shutil import rmtree
-from core.function import train_model, valid_model
-from core.evaluate import AverageMeter, accuracy
+from src.core.function import train_model, valid_model
+from src.core.evaluate import AverageMeter, accuracy
 
 
 def train():
@@ -29,13 +29,13 @@ def train():
 
     train_loader = DataLoader(train_dataset, batch_size=config['train']['batch_size'], shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=config['train']['batch_size'], shuffle=False)
-    num_epochs=config['train']['num_epochs']
+    num_epochs = config['train']['num_epochs']
 
     # 模型、损失函数和优化器
     model = Network(config['data']['num_classes']).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=config['train']['learning_rate'], momentum=0.9)
-    scheduler = optim.lr_scheduler.MultiStepLR(optimizer,milestones=[3, 6, 9],gamma=0.1)
+    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[3, 6, 9], gamma=0.1)
 
     combiner = Combiner(config, device)
 
@@ -60,8 +60,6 @@ def train():
     )
     shutil.copytree(os.path.join(this_dir, ".."), code_dir, ignore=ignore)
 
-    best_result, best_epoch, start_epoch = 0, 0, 1
-
     # 设置起始训练参数
     start_epoch = 1
     best_result = 0
@@ -79,10 +77,7 @@ def train():
             criterion,
             config  # ???????????????
         )
-        model_save_path = os.path.join(
-            model_dir,
-            "epoch_{}.pth".format(epoch),
-        )
+        model_save_path = os.path.join(model_dir, "epoch_{}.pth".format(epoch))
         if epoch % config['save_step'] == 0:
             torch.save({
                 'state_dict': model.state_dict(),
@@ -102,71 +97,15 @@ def train():
             if valid_acc > best_result:
                 best_result, best_epoch = valid_acc, epoch
                 torch.save({
-                        'state_dict': model.state_dict(),
-                        'epoch': epoch,
-                        'best_result': best_result,
-                        'best_epoch': best_epoch,
-                        'scheduler': scheduler.state_dict(),
-                        'optimizer': optimizer.state_dict(),
+                    'state_dict': model.state_dict(),
+                    'epoch': epoch,
+                    'best_result': best_result,
+                    'best_epoch': best_epoch,
+                    'scheduler': scheduler.state_dict(),
+                    'optimizer': optimizer.state_dict(),
                 }, os.path.join(model_dir, "best_model.pth")
                 )
         print("Training Finished: Best Epoch: {} with Accuracy: {:.2f}%".format(best_epoch, best_result * 100))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     # 训练循环
     train_losses, val_losses, accuracies = [], [], []
@@ -203,10 +142,12 @@ def train():
         val_losses.append(val_loss)
         accuracy = correct / total
         accuracies.append(accuracy)
-        print(f"Epoch {epoch+1}/{config['train']['num_epochs']} - Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, Accuracy: {accuracy:.4f}")
+        print(
+            f"Epoch {epoch + 1}/{config['train']['num_epochs']} - Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, Accuracy: {accuracy:.4f}")
 
     save_model(model, config['save_path'])
     plot_training_curves(train_losses, val_losses, accuracies)
+
 
 if __name__ == '__main__':
     train()

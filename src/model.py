@@ -30,6 +30,12 @@ class Downsample(nn.Module):
             a = np.array([1., 2., 1.])
         elif self.filt_size == 4:
             a = np.array([1., 3., 3., 1.])
+        elif self.filt_size == 5:
+            a = np.array([1., 4., 6., 4., 1.])
+        elif self.filt_size == 6:
+            a = np.array([1., 5., 10., 10., 5., 1.])
+        elif self.filt_size == 7:
+            a = np.array([1., 6., 15., 20., 15., 6., 1.])
 
         filt = torch.Tensor(a[:, None] * a[None, :])
         filt = filt / torch.sum(filt)
@@ -143,7 +149,7 @@ def bbn_res50(num_classes, pretrain_path=None):
     model = BBN_ResNet(num_classes, BottleNeck, [3, 4, 6, 3])
     if pretrain_path:
         print(f"加载预训练模型: {pretrain_path}")
-        model.load_state_dict(torch.load(pretrain_path, map_location="cpu"))
+        model.load_state_dict(torch.load(pretrain_path))
     return model
 
 class Network(nn.Module):
@@ -158,7 +164,7 @@ class Network(nn.Module):
             pretrain_path="F:\\iNaturalist\\resnet50-19c8e357.pth"
         )
         self.module = nn.AdaptiveAvgPool2d(1)
-        self.classifier = nn.Linear(4096, self.num_classes, bias=True)
+        self.classifier = nn.Linear(2048 * 2, self.num_classes, bias=True)
 
     def forward(self, x, **kwargs):
         if "feature_flag" in kwargs or "feature_cb" in kwargs or "feature_rb" in kwargs:

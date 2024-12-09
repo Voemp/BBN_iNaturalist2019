@@ -1,19 +1,19 @@
-from evaluate import accuracy, AverageMeter, FusionMatrix
-
-import numpy as np
-import torch
 import time
+
+import torch
+
+from src.core.evaluate import AverageMeter, FusionMatrix, accuracy
 
 
 def train_model(
-    trainLoader,
-    model,
-    epoch,
-    epoch_number,
-    optimizer,
-    combiner,
-    criterion,
-    cfg
+        trainLoader,
+        model,
+        epoch,
+        epoch_number,
+        optimizer,
+        combiner,
+        criterion,
+        cfg
 ):
     if cfg.EVAL_MODE:
         model.eval()
@@ -55,7 +55,7 @@ def train_model(
 
 
 def valid_model(
-    dataLoader, epoch_number, model, cfg, criterion, device, **kwargs
+        dataLoader, epoch_number, model, cfg, criterion, device, **kwargs
 ):
     model.eval()
     num_classes = dataLoader.dataset.get_num_classes()
