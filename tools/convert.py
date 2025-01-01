@@ -37,8 +37,8 @@ def convert(json_file, image_root):
 if __name__ == "__main__":
     args = parse_args()
 
-    load_path = "F:\\iNaturalist\\inaturalist-2019-fgvc6/{}2019.json".format(args.file)
-    root_path = "F:\\iNaturalist\\inaturalist-2019-fgvc6"
+    load_path = "../iNaturalist2019/{}2019.json".format(args.file)
+    root_path = "/root/autodl-tmp/iNaturalist2019/"
     save_path = "data/jsons"
 
     converted_annos = convert(load_path, root_path)

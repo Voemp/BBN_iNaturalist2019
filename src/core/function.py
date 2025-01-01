@@ -43,8 +43,8 @@ def train_model(
             )
     end_time = time.time()
     print(
-        f"---Epoch:{epoch:>3d}/{epoch_number}   Avg_Loss:{all_loss.avg:>5.3f}   "
-        f"Epoch_Accuracy:{acc.avg * 100:>5.2f}%   Epoch_Time:{(end_time - start_time) / 60:>5.2f}min---"
+        f"--- Epoch:{epoch:>3d}/{epoch_number}   Avg_Loss:{all_loss.avg:>5.3f}   "
+        f"Epoch_Accuracy:{acc.avg * 100:>5.2f}%   Epoch_Time:{(end_time - start_time) / 60:>5.2f}min"
     )
     return acc.avg, all_loss.avg
 
@@ -74,8 +74,8 @@ def valid_model(data_loader, epoch_number, model, criterion, device):
             acc.update(now_acc, cnt)
 
         print(
-            f"------- Valid: Epoch:{epoch_number:>3d}  Valid_Loss:{all_loss.avg:>5.3f}  "
-            f"Valid_Acc:{acc.avg * 100:>5.2f}% -------"
+            f"--- Valid: Epoch:{epoch_number:>3d}  Valid_Loss:{all_loss.avg:>5.3f}  "
+            f"Valid_Acc:{acc.avg * 100:>5.2f}%"
         )
     return acc.avg, all_loss.avg
 
@@ -119,9 +119,10 @@ def test_model(data_loader, model, device):
     top1_acc = float(np.sum(top1_count) / len(top1_count))
     top2_acc = float(np.sum(top2_count) / len(top1_count))
     top3_acc = float(np.sum(top3_count) / len(top1_count))
+    pbar.close()
+
     print(
         "Top1:{:>5.2f}%  Top2:{:>5.2f}%  Top3:{:>5.2f}%".format(
             top1_acc * 100, top2_acc * 100, top3_acc * 100
         )
     )
-    pbar.close()

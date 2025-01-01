@@ -13,7 +13,6 @@ class BaseSet(Dataset):
         初始化数据集
         :param json_file: 数据集的 JSON 文件路径
         :param mode: 当前模式（"train" 或 "valid"）
-        :param cfg: 配置文件，用于读取参数如颜色空间、双重采样和类别权重等
         :param transform: 数据增强和预处理操作
         """
         with open(json_file, 'r') as f:
@@ -23,7 +22,7 @@ class BaseSet(Dataset):
         self.num_classes = data['num_classes']
         self.mode = mode
         self.transform = transform
-        self.input_size = (100, 100)  # 从配置中获取输入大小
+        self.input_size = (200, 200)  # 从配置中获取输入大小
         self.color_space = RGB  # 颜色空间设置（RGB/BGR等）
         self.dual_sample = True if mode == "train" else False  # 双重采样设置
         self.class_weight, self.sum_weight = self.get_weight(self.annotations, self.num_classes)  # 更新类别权重

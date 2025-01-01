@@ -13,10 +13,7 @@ class Combiner:
 
     def initilize_all_parameters(self):
         self.alpha = 0.2
-        if self.epoch_number in [90, 180]:
-            self.div_epoch = 100 * (self.epoch_number // 100 + 1)
-        else:
-            self.div_epoch = self.epoch_number
+        self.div_epoch = 100 * (self.epoch_number // 100 + 1)
 
     def reset_epoch(self, epoch):
         self.epoch = epoch

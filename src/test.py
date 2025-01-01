@@ -17,7 +17,7 @@ def test():
 
     # 加载模型
     model = Network(mode="test", num_classes=config['data']['num_classes']).to(device)
-    model.load_model("../data/models/epoch_1.pth", device)
+    model.load_model("../data/models/best_model.pth", device)
 
     test_model(test_loader, model, device)
 

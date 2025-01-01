@@ -1,3 +1,4 @@
+import csv
 import os
 
 import torch
@@ -32,7 +33,7 @@ def train():
     model = Network(mode="train", num_classes=config['data']['num_classes']).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=config['train']['learning_rate'], momentum=0.9, weight_decay=1e-4)
-    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[3, 6, 9], gamma=0.1)
+    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[40, 60], gamma=0.1)
 
     combiner = Combiner(config, device)
 
@@ -40,6 +41,9 @@ def train():
     start_epoch = 1
     best_result = 0
     best_epoch = 0
+
+    csv_file = open("../data/data.csv", mode="w", newline="", encoding="utf-8")
+    writer = csv.writer(csv_file)
 
     for epoch in range(start_epoch, num_epochs + 1):
         train_acc, train_loss = train_model(
@@ -63,26 +67,31 @@ def train():
             }, os.path.join(model_dir, "epoch_{}.pth".format(epoch)))
 
         loss_dict, acc_dict = {"train_loss": train_loss}, {"train_acc": train_acc}
-        if epoch % config['valid_step'] == 0:
-            valid_acc, valid_loss = valid_model(
-                val_loader,
-                epoch,
-                model,
-                criterion,
-                device
-            )
-            loss_dict["valid_loss"], acc_dict["valid_acc"] = valid_loss, valid_acc
-            if valid_acc > best_result:
-                best_result, best_epoch = valid_acc, epoch
-                torch.save({
-                    'state_dict': model.state_dict(),
-                    'epoch': epoch,
-                    'best_result': best_result,
-                    'best_epoch': best_epoch,
-                    'scheduler': scheduler.state_dict(),
-                    'optimizer': optimizer.state_dict(),
-                }, os.path.join(model_dir, "best_model.pth"))
-        print("Training Finished: Best Epoch: {} with Accuracy: {:.2f}%".format(best_epoch, best_result * 100))
+
+        valid_acc, valid_loss = valid_model(
+            val_loader,
+            epoch,
+            model,
+            criterion,
+            device
+        )
+        loss_dict["valid_loss"], acc_dict["valid_acc"] = valid_loss, valid_acc
+        if valid_acc > best_result:
+            best_result, best_epoch = valid_acc, epoch
+            torch.save({
+                'state_dict': model.state_dict(),
+                'epoch': epoch,
+                'best_result': best_result,
+                'best_epoch': best_epoch,
+                'scheduler': scheduler.state_dict(),
+                'optimizer': optimizer.state_dict(),
+            }, os.path.join(model_dir, "best_model.pth"))
+        print("--- Training Finished: Best Epoch: {} with Accuracy: {:.2f}%".format(best_epoch, best_result * 100))
+
+        # 将数据写入 CSV 文件
+        writer.writerow([epoch, train_loss, valid_loss, valid_acc])
+
+    csv_file.close()
 
 
 if __name__ == '__main__':

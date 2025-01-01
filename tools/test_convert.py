@@ -53,16 +53,16 @@ def convert(json_file, csv_file, image_root):
 
 def main():
     # 输入的 test2019.json 文件路径
-    json_file = "F:\\iNaturalist\\inaturalist-2019-fgvc6\\test2019.json"
+    json_file = "../iNaturalist2019/test2019.json"
 
     # 图像根目录路径 (请根据实际路径修改)
-    image_root = "F:\\iNaturalist\\inaturalist-2019-fgvc6"
+    image_root = "/root/autodl-tmp/iNaturalist2019"
 
     # 输入的预测 CSV 文件路径 (假设 csv 文件位于当前路径)
-    csv_file = "F:\\iNaturalist\\inaturalist-2019-fgvc6\\kaggle_sample_submission.csv"  # 请修改为实际的 CSV 文件路径
+    csv_file = "../iNaturalist2019/kaggle_sample_submission.csv"  # 请修改为实际的 CSV 文件路径
 
     # 保存转换后的文件路径
-    save_path = "F:\\BBN_iNaturalist2019\\data\\jsons\\converted_test2019.json"
+    save_path = "data/jsons/converted_test2019.json"
 
     # 转换 JSON 文件
     converted_annos = convert(json_file, csv_file, image_root)
